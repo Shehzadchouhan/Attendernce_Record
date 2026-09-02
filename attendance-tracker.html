@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>75 Line — Attendance Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+  :root{
+    --navy: #16233F;
+    --navy-2: #1E3157;
+    --navy-3: #263B68;
+    --paper: #F4F1E8;
+    --gold: #E3A23D;
+    --coral: #E15B4B;
+    --sage: #6F9C82;
+    --ink: #16233F;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background: var(--navy);
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(227,162,61,0.10), transparent 45%),
+      radial-gradient(circle at 90% 85%, rgba(111,156,130,0.10), transparent 45%);
+    font-family: 'Inter', sans-serif;
+    color: var(--paper);
+    min-height: 100vh;
+    padding: 32px 20px 80px;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; }
+  header{ margin-bottom: 28px; }
+  .eyebrow{ font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  h1{ font-family:'Fraunces', serif; font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.05; color: var(--paper); }
+  h1 span{ color: var(--gold); }
+  .sub{ margin-top: 8px; color: rgba(244,241,232,0.65); font-size: 14.5px; max-width: 620px; }
+
+  .hero{ background: var(--navy-2); border: 1px solid rgba(244,241,232,0.08); border-radius: 18px; padding: 26px 22px 20px; margin-bottom: 22px; display:flex; gap: 26px; align-items:center; flex-wrap: wrap; }
+  .gauge-box{ flex: 0 0 210px; text-align:center; }
+  .gauge-num{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size: 15px; margin-top: -58px; color: var(--paper); }
+  .gauge-num small{ display:block; font-size: 10px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color: rgba(244,241,232,0.5); margin-top:2px;}
+  .hero-msg{ flex: 1 1 280px; min-width: 240px; }
+  .status-pill{ display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:0.06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; }
+  .status-safe{ background: rgba(111,156,130,0.18); color: #9FCBAF; }
+  .status-warn{ background: rgba(227,162,61,0.18); color: var(--gold); }
+  .status-danger{ background: rgba(225,91,75,0.18); color: #F19484; }
+  .hero-msg p{ font-size: 15px; line-height:1.5; color: rgba(244,241,232,0.85); }
+  .hero-msg p b{ color: var(--paper); }
+  .hero-stats{ display:flex; gap:22px; margin-top:12px; flex-wrap:wrap; }
+  .hero-stat .n{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color: var(--gold); }
+  .hero-stat .l{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color: rgba(244,241,232,0.45); }
+
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin: 30px 0 14px; }
+  .section-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size: 20px; color: var(--paper); }
+  .section-head .count{ font-family:'JetBrains Mono',monospace; font-size:12px; color: rgba(244,241,232,0.45); }
+
+  button{ font-family:'Inter',sans-serif; cursor:pointer; border:none; }
+  .btn-gold{ background: var(--gold); color: var(--navy); font-weight:700; font-size: 13px; padding: 9px 16px; border-radius: 9px; transition: transform .12s ease, background .15s ease; }
+  .btn-gold:hover{ background:#EEB25A; transform: translateY(-1px); }
+  .btn-ghost{ background: transparent; color: rgba(244,241,232,0.6); font-size:12px; font-weight:600; padding: 6px 10px; border-radius:7px; border:1px solid rgba(244,241,232,0.15); }
+  .btn-ghost:hover{ color:var(--paper); border-color: rgba(244,241,232,0.35); }
+  .btn-mini{ background: rgba(244,241,232,0.08); color: var(--paper); font-size:11px; font-weight:600; padding:6px 10px; border-radius:7px; }
+  .btn-mini.active{ background: var(--gold); color: var(--navy); }
+
+  .subjects{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:14px; }
+  .card{ background: var(--paper); color: var(--ink); border-radius: 16px; padding: 18px; position:relative; overflow:hidden; border: 1px solid rgba(22,35,63,0.06); }
+  .card::before{ content:''; position:absolute; top:0; left:0; height:4px; width:100%; background: var(--bar-color, var(--sage)); }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:10px;}
+  .card-top h3{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; line-height:1.2; }
+  .card-pct{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:19px; }
+  .del-btn{ background:none; color: rgba(22,35,63,0.35); font-size:16px; line-height:1; padding:2px 4px; }
+  .del-btn:hover{ color: var(--coral); }
+  .track{ height:8px; border-radius:6px; background: rgba(22,35,63,0.08); position:relative; margin-bottom:8px; overflow:visible;}
+  .track-fill{ height:100%; border-radius:6px; background: var(--bar-color, var(--sage)); transition: width .3s ease;}
+  .track-threshold{ position:absolute; top:-3px; bottom:-3px; width:2px; background: var(--coral); left:75%; }
+  .card-meta{ display:flex; justify-content:space-between; font-size:11.5px; color: rgba(22,35,63,0.55); margin-bottom:10px; font-family:'JetBrains Mono',monospace;}
+  .card-guide{ font-size:12.5px; color: rgba(22,35,63,0.75); margin-bottom:10px; line-height:1.45; min-height: 34px; }
+  .card-guide b{ color: var(--ink); }
+  .card-days{ display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
+  .day-chip{ font-size:10.5px; font-weight:700; padding:4px 7px; border-radius:6px; background: rgba(22,35,63,0.06); color: rgba(22,35,63,0.4); }
+  .day-chip.on{ background: var(--navy); color: var(--paper); }
+  .mark-row{ display:flex; gap:6px; }
+  .mark-row button{ flex:1; font-size:12px; font-weight:700; padding:8px 4px; border-radius:8px; background: rgba(22,35,63,0.06); color: var(--ink); transition: all .12s ease; }
+  .mark-row button.present-btn:hover{ background: var(--sage); color:#fff; }
+  .mark-row button.absent-btn:hover{ background: var(--coral); color:#fff; }
+  .undo-line{ margin-top:9px; font-size:11px; color: rgba(22,35,63,0.4); font-family:'JetBrains Mono',monospace;}
+  .undo-line button{ background:none; text-decoration:underline; color: rgba(22,35,63,0.5); font-size:11px; padding:0;}
+  .empty{ text-align:center; padding: 34px 20px; color: rgba(244,241,232,0.5); font-size:14px; border: 1px dashed rgba(244,241,232,0.2); border-radius:14px; }
+  .add-row{ display:flex; gap:8px; margin-top: 8px; }
+  .add-row input{ flex:1; background: var(--navy-2); border:1px solid rgba(244,241,232,0.15); color: var(--paper); padding: 10px 12px; border-radius:9px; font-size:14px; font-family:'Inter',sans-serif; }
+  .add-row input::placeholder{ color: rgba(244,241,232,0.35); }
+  .quick-date{ display:flex; align-items:center; gap:10px; margin-top:12px; color:rgba(244,241,232,0.55); font-size:12px; }
+  .quick-date label{ font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.05em; }
+  .quick-date input{ background:var(--navy-2); border:1px solid rgba(244,241,232,0.15); color:var(--paper); padding:8px 10px; border-radius:8px; font:600 12px 'JetBrains Mono',monospace; }
+  .quick-date-note{ color:rgba(244,241,232,0.4); }
+
+  /* calendar */
+  .cal-card{ background: var(--navy-2); border-radius:16px; padding: 18px; border:1px solid rgba(244,241,232,0.08); }
+  .month-tabs{ display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .month-tab{ background: rgba(244,241,232,0.06); color: rgba(244,241,232,0.6); font-size:12.5px; font-weight:600; padding:7px 14px; border-radius:8px; }
+  .month-tab.active{ background: var(--gold); color: var(--navy); }
+  .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }
+  .cal-dow{ text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color: rgba(244,241,232,0.35); padding-bottom:4px; }
+  .cal-day{ aspect-ratio: 1; border-radius:9px; background: rgba(244,241,232,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; font-weight:600; color: rgba(244,241,232,0.5); position:relative; cursor:pointer; transition: background .12s ease; }
+  .cal-day:hover{ background: rgba(244,241,232,0.12); }
+  .cal-day.pad{ visibility:hidden; cursor:default; }
+  .cal-day.sunday{ color: rgba(244,241,232,0.22); }
+  .cal-day.holiday{ background: rgba(227,162,61,0.85); color: var(--navy); }
+  .cal-day.exam{ background: rgba(225,91,75,0.85); color: #fff; }
+  .cal-day.today{ box-shadow: inset 0 0 0 2px var(--paper); }
+  .cal-day .dot{ font-size:7px; margin-top:2px; }
+  .cal-legend{ display:flex; gap:16px; margin-top:14px; flex-wrap:wrap; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size:11px; color: rgba(244,241,232,0.55); }
+  .legend-swatch{ width:11px; height:11px; border-radius:3px; }
+
+  .edit-panel{ margin-top:16px; background: var(--navy-3); border-radius:12px; padding:14px; display:none; }
+  .edit-panel.open{ display:block; }
+  .edit-panel .ep-date{ font-family:'JetBrains Mono',monospace; font-size:12px; color: var(--gold); margin-bottom:10px; }
+  .ep-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .ep-row input[type=text]{ flex:1; min-width:160px; background: var(--navy); border:1px solid rgba(244,241,232,0.15); color: var(--paper); padding: 9px 10px; border-radius:8px; font-size:13px; font-family:'Inter',sans-serif; }
+  .ep-row select{ flex:1; min-width:160px; background: var(--navy); border:1px solid rgba(244,241,232,0.15); color: var(--paper); padding: 9px 10px; border-radius:8px; font-size:13px; font-family:'Inter',sans-serif; }
+  .attendance-entry{ border-top:1px solid rgba(244,241,232,0.1); margin-top:12px; padding-top:12px; }
+  .attendance-entry label{ display:block; color:rgba(244,241,232,0.55); font-size:11px; margin-bottom:7px; }
+  .attendance-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .attendance-actions button{ flex:1; min-width:120px; }
+  .present-action:hover{ background:var(--sage); color:#fff; }
+  .absent-action:hover{ background:var(--coral); color:#fff; }
+  .ep-actions{ display:flex; gap:8px; }
+
+  footer{ text-align:center; margin-top: 40px; }
+  .storage-note{ min-height: 18px; margin-top: 10px; color: rgba(244,241,232,0.45); font-size: 11px; }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">// attendance ledger · Aug – Dec 2026</div>
+    <h1>The <span>75</span> Line</h1>
+    <p class="sub">Track every lecture, watch your margin, and know exactly how many classes are left this semester once holidays and exams are taken out.</p>
+  </header>
+
+  <div class="hero">
+    <div class="gauge-box">
+      <svg id="gaugeSvg" viewBox="0 0 200 120" width="210" height="126"></svg>
+      <div class="gauge-num" id="gaugeNum">—<small>overall attendance</small></div>
+    </div>
+    <div class="hero-msg" id="heroMsg">
+      <span class="status-pill status-safe">NO DATA YET</span>
+      <p>Add your subjects below and start marking lectures — your overall margin will show up here.</p>
+      <div class="hero-stats" id="heroStats"></div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>Subjects</h2>
+    <span class="count" id="subjectCount">0 tracked</span>
+  </div>
+  <div class="add-row">
+    <input type="text" id="subjectInput" placeholder="Add a subject, e.g. Data Structures" maxlength="40">
+    <button class="btn-gold" id="addSubjectBtn">+ Add</button>
+  </div>
+  <div class="quick-date">
+    <label for="quickDate">Marking date</label>
+    <input type="date" id="quickDate" min="2026-08-01" max="2026-12-31">
+    <span class="quick-date-note">Use the calendar below for another date or an event.</span>
+  </div>
+  <div class="subjects" id="subjectsGrid" style="margin-top:16px;"></div>
+  <div class="empty" id="emptyState" style="display:none;">No subjects yet. Add your first one above — you'll be marking lectures in seconds.</div>
+
+  <div class="section-head">
+    <h2>Semester calendar</h2>
+    <span class="count">tap a day to mark holiday / exam</span>
+  </div>
+  <div class="cal-card">
+    <div class="month-tabs" id="monthTabs"></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--gold)"></span> Holiday</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--coral)"></span> Exam</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:rgba(244,241,232,0.22)"></span> Sunday (no class)</div>
+    </div>
+    <div class="edit-panel" id="editPanel">
+      <div class="ep-date" id="epDate"></div>
+      <div class="ep-row">
+        <button class="btn-mini" id="epHoliday">Mark holiday</button>
+        <button class="btn-mini" id="epExam">Mark exam</button>
+        <button class="btn-mini" id="epClear">Clear day</button>
+      </div>
+      <div class="ep-row">
+        <input type="text" id="epTitle" placeholder="Title, e.g. Diwali break / Mid-sem: Data Structures" maxlength="60">
+      </div>
+      <div class="attendance-entry">
+        <label for="epSubject">Attendance for this date</label>
+        <div class="ep-row">
+          <select id="epSubject" aria-label="Choose subject for attendance"></select>
+        </div>
+        <div class="attendance-actions">
+          <button class="btn-mini present-action" id="epPresent">Mark present</button>
+          <button class="btn-mini absent-action" id="epAbsent">Mark absent</button>
+        </div>
+      </div>
+      <div class="ep-actions">
+        <button class="btn-gold" id="epSave">Save</button>
+        <button class="btn-ghost" id="epCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <button class="btn-ghost" id="resetBtn">Reset all data</button>
+    <div class="storage-note" id="storageNote" aria-live="polite"></div>
+  </footer>
+</div>
+
+<script>
+const TARGET = 0.75;
+const SEM_START = new Date(2026,7,1);   // Aug 1 2026
+const SEM_END   = new Date(2026,11,31); // Dec 31 2026
+const MONTHS = [{y:2026,m:7,label:'Aug'},{y:2026,m:8,label:'Sep'},{y:2026,m:9,label:'Oct'},{y:2026,m:10,label:'Nov'},{y:2026,m:11,label:'Dec'}];
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+const DOW_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let subjects = [];
+let events = []; // {id, date:'YYYY-MM-DD', type:'holiday'|'exam', title}
+let activeMonthIdx = 0;
+let selectedDate = null;
+let quickDate = '';
+const memoryStore = {};
+
+function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+async function loadData(){
+  [subjects, events] = await Promise.all([readStoredArray('subjects'), readStoredArray('events')]);
+  quickDate = fmt(TODAY < SEM_START ? SEM_START : TODAY > SEM_END ? SEM_END : TODAY);
+  activeMonthIdx = MONTHS.findIndex(month=>month.y===TODAY.getFullYear() && month.m===TODAY.getMonth());
+  if(activeMonthIdx < 0) activeMonthIdx = 0;
+  document.getElementById('quickDate').value = quickDate;
+  render();
+}
+async function readStoredArray(key){
+  try{
+    if(window.storage && typeof window.storage.get === 'function'){
+      const result = await window.storage.get(key, false);
+      const parsed = result && result.value ? JSON.parse(result.value) : [];
+      if(Array.isArray(parsed)) return parsed;
+    }
+  }catch(e){ /* Fall back to browser storage. */ }
+  try{
+    const raw = window.localStorage.getItem('attendance-tracker-' + key);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed)) return parsed;
+    }
+  }catch(e){ /* Some file origins disable localStorage. */ }
+  try{
+    const raw = memoryStore[key];
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+async function saveStoredArray(key, value){
+  const serialized = JSON.stringify(value);
+  memoryStore[key] = serialized;
+  try{
+    if(window.storage && typeof window.storage.set === 'function'){
+      await window.storage.set(key, serialized, false);
+      setStorageNote('Saved on this device');
+      return;
+    }
+  }catch(e){ /* In-memory storage still keeps this session working. */ }
+  try{ window.localStorage.setItem('attendance-tracker-' + key, serialized); setStorageNote('Saved on this device'); return; }catch(e){ /* Use the in-memory fallback. */ }
+  setStorageNote('Working in this browser session only');
+}
+function setStorageNote(message){
+  const note = document.getElementById('storageNote');
+  if(note) note.textContent = message;
+}
+async function saveSubjects(){ await saveStoredArray('subjects', subjects); }
+async function saveEvents(){ await saveStoredArray('events', events); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function eventFor(dateStr){ return events.find(e=>e.date===dateStr); }
+
+// ---- lecture-day math ----
+function isHolidayOrExam(dateStr){ return !!eventFor(dateStr); }
+
+function remainingLectureDays(days){
+  // days: array of weekday numbers (0=Sun..6=Sat) this subject/overall meets
+  let count = 0;
+  let d = new Date(TODAY);
+  d.setDate(d.getDate()+1);
+  while(d <= SEM_END){
+    const ds = fmt(d);
+    if(days.includes(d.getDay()) && !isHolidayOrExam(ds)) count++;
+    d.setDate(d.getDate()+1);
+  }
+  return count;
+}
+
+function computeStats(records, remaining){
+  const present = records.filter(r=>r.status==='present').length;
+  const absent = records.filter(r=>r.status==='absent').length;
+  const total = present + absent;
+  const pct = total ? (present/total)*100 : null;
+
+  let canSkip = 0, mustAttend = 0;
+  if(total > 0){
+    if(pct >= 75){ canSkip = Math.max(0, Math.floor(present/TARGET - total)); }
+    else { mustAttend = Math.max(0, Math.ceil((TARGET*total - present) / (1-TARGET))); }
+  }
+  // best case using remaining lecture days
+  const bestTotal = total + remaining;
+  const bestPresent = present + remaining;
+  const bestPct = bestTotal ? (bestPresent/bestTotal)*100 : null;
+  // how many of the remaining must be attended to hit 75% by semester end
+  let neededFromRemaining = 0;
+  if(bestTotal > 0){
+    neededFromRemaining = Math.ceil(TARGET*bestTotal - present);
+    neededFromRemaining = Math.max(0, Math.min(remaining, neededFromRemaining));
+  }
+  return { present, absent, total, pct, canSkip, mustAttend, bestPct, neededFromRemaining };
+}
+
+function colorFor(pct){
+  if(pct === null) return '#6F9C82';
+  if(pct >= 75) return '#6F9C82';
+  if(pct >= 65) return '#E3A23D';
+  return '#E15B4B';
+}
+
+function drawGauge(pct){
+  const svg = document.getElementById('gaugeSvg');
+  const val = pct === null ? 0 : pct;
+  const angle = (val/100) * 180;
+  const rad = (deg)=> (Math.PI/180)*deg;
+  const cx=100, cy=100, r=80;
+  function pointAt(deg){ const a = 180 - deg; return [cx + r*Math.cos(rad(a)), cy - r*Math.sin(rad(a))]; }
+  const [sx,sy] = pointAt(0);
+  const [ex,ey] = pointAt(angle);
+  const large = angle > 180 ? 1 : 0;
+  const col = colorFor(pct);
+  const [tx,ty] = pointAt(180*0.75);
+  svg.innerHTML = `
+    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(244,241,232,0.12)" stroke-width="14" stroke-linecap="round"/>
+    ${val > 0 ? `<path d="M ${sx} ${sy} A 80 80 0 ${large} 1 ${ex} ${ey}" fill="none" stroke="${col}" stroke-width="14" stroke-linecap="round"/>` : ''}
+    <line x1="${tx}" y1="${ty-9}" x2="${tx}" y2="${ty+9}" stroke="#F4F1E8" stroke-width="2.5" opacity="0.85"/>
+    <text x="${tx}" y="${ty-14}" fill="#F4F1E8" font-size="8" font-family="JetBrains Mono, monospace" text-anchor="middle" opacity="0.6">75</text>
+  `;
+  document.getElementById('gaugeNum').innerHTML = (pct===null ? '—' : Math.round(pct)+'%') + '<small>overall attendance</small>';
+}
+
+function renderHero(){
+  const allRecords = subjects.flatMap(s=>s.records);
+  const overallRemaining = remainingLectureDays([1,2,3,4,5,6]);
+  const stats = computeStats(allRecords, overallRemaining);
+  drawGauge(stats.pct);
+
+  const msgBox = document.getElementById('heroMsg');
+  const statsBox = document.getElementById('heroStats');
+  statsBox.innerHTML = `
+    <div class="hero-stat"><div class="n">${overallRemaining}</div><div class="l">lecture days left</div></div>
+    <div class="hero-stat"><div class="n">${events.filter(e=>e.type==='holiday').length}</div><div class="l">holidays logged</div></div>
+    <div class="hero-stat"><div class="n">${events.filter(e=>e.type==='exam').length}</div><div class="l">exam days logged</div></div>
+  `;
+
+  if(stats.total === 0){
+    msgBox.querySelector ? null : null;
+    document.querySelector('#heroMsg').innerHTML = `<span class="status-pill status-safe">NO DATA YET</span><p>Add your subjects below and start marking lectures — your overall margin will show up here.</p>`;
+    document.getElementById('heroMsg').appendChild(statsBox);
+    return;
+  }
+  let pillClass, pillText, msg;
+  if(stats.pct >= 75){
+    pillClass = 'status-safe'; pillText = 'ABOVE THE LINE';
+    msg = stats.canSkip > 0
+      ? `You can miss <b>${stats.canSkip}</b> more lecture${stats.canSkip===1?'':'s'} overall and stay at or above 75%.`
+      : `You're exactly on the line — one more absence will drop you below 75%.`;
+  } else if(stats.pct >= 65){
+    pillClass = 'status-warn'; pillText = 'CUTTING IT CLOSE';
+    msg = `Attend the next <b>${stats.mustAttend}</b> lecture${stats.mustAttend===1?'':'s'} in a row to climb back to 75%.`;
+  } else {
+    pillClass = 'status-danger'; pillText = 'BELOW THE LINE';
+    msg = `You're behind. Attend the next <b>${stats.mustAttend}</b> lecture${stats.mustAttend===1?'':'s'} without missing any to reach 75%.`;
+  }
+  if(stats.bestPct !== null && stats.bestPct < 75){
+    msg += ` Even attending all <b>${overallRemaining}</b> remaining lecture days this semester, best case is <b>${Math.round(stats.bestPct)}%</b> — talk to your department early.`;
+  }
+  document.getElementById('heroMsg').innerHTML = `<span class="status-pill ${pillClass}">${pillText}</span><p>${msg} <b>${stats.present}</b> present / <b>${stats.total}</b> counted so far.</p>`;
+  document.getElementById('heroMsg').appendChild(statsBox);
+}
+
+function renderSubjects(){
+  const grid = document.getElementById('subjectsGrid');
+  const emptyState = document.getElementById('emptyState');
+  document.getElementById('subjectCount').textContent = subjects.length + ' tracked';
+  if(subjects.length === 0){ grid.innerHTML = ''; emptyState.style.display = 'block'; return; }
+  emptyState.style.display = 'none';
+
+  grid.innerHTML = subjects.map(subj=>{
+    const remaining = remainingLectureDays(subj.days);
+    const stats = computeStats(subj.records, remaining);
+    const col = colorFor(stats.pct);
+    const pctLabel = stats.pct===null ? '—' : Math.round(stats.pct)+'%';
+    const fillWidth = stats.pct===null ? 0 : Math.min(100, stats.pct);
+
+    let guide;
+    if(stats.total === 0){ guide = `No lectures logged yet. <b>${remaining}</b> lecture days remain this semester.`; }
+    else if(stats.pct >= 75){ guide = (stats.canSkip > 0 ? `Safe to miss <b>${stats.canSkip}</b> more.` : `On the line — no misses left.`) + ` <b>${remaining}</b> lecture days remain.`; }
+    else { guide = `Attend next <b>${stats.mustAttend}</b> in a row to recover. Of the <b>${remaining}</b> remaining, you need at least <b>${stats.neededFromRemaining}</b>.`; }
+
+    const lastRec = subj.records.length ? subj.records[subj.records.length-1] : null;
+    const dayChips = ['S','M','T','W','T','F','S'].map((l,i)=>`<span class="day-chip ${subj.days.includes(i)?'on':''}" onclick="toggleDay('${subj.id}',${i})">${l}</span>`).join('');
+
+    return `
+    <div class="card" style="--bar-color:${col}">
+      <div class="card-top">
+        <h3>${escapeHtml(subj.name)}</h3>
+        <button class="del-btn" title="Delete subject" onclick="deleteSubject('${subj.id}')">✕</button>
+      </div>
+      <div class="card-pct" style="color:${col}">${pctLabel}</div>
+      <div class="track" style="margin-top:8px;">
+        <div class="track-fill" style="width:${fillWidth}%"></div>
+        <div class="track-threshold"></div>
+      </div>
+      <div class="card-meta"><span>P ${stats.present} · A ${stats.absent}</span><span>${stats.total} counted</span></div>
+      <div class="card-guide">${guide}</div>
+      <div class="card-days">${dayChips}</div>
+      <div class="mark-row">
+        <button class="present-btn" onclick="mark('${subj.id}','present')">Present · ${formatShortDate(quickDate)}</button>
+        <button class="absent-btn" onclick="mark('${subj.id}','absent')">Absent · ${formatShortDate(quickDate)}</button>
+      </div>
+      ${lastRec ? `<div class="undo-line">Last: ${lastRec.status} on ${lastRec.date} · <button onclick="undoLast('${subj.id}')">undo</button></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderMonthTabs(){
+  const box = document.getElementById('monthTabs');
+  box.innerHTML = MONTHS.map((m,i)=>`<button class="month-tab ${i===activeMonthIdx?'active':''}" onclick="setMonth(${i})">${m.label} '26</button>`).join('');
+}
+
+window.setMonth = function(i){ activeMonthIdx = i; selectedDate = null; renderCalendar(); };
+
+function renderCalendar(){
+  renderMonthTabs();
+  const {y,m} = MONTHS[activeMonthIdx];
+  const grid = document.getElementById('calGrid');
+  const first = new Date(y,m,1);
+  const startPad = first.getDay(); // 0=Sun
+  const daysInMonth = new Date(y,m+1,0).getDate();
+
+  let html = DOW_LABELS.map(l=>`<div class="cal-dow">${l}</div>`).join('');
+  for(let i=0;i<startPad;i++) html += `<div class="cal-day pad"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const date = new Date(y,m,d);
+    const ds = fmt(date);
+    const ev = eventFor(ds);
+    const isSun = date.getDay()===0;
+    const isToday = ds === fmt(TODAY);
+    const outOfSem = date < SEM_START || date > SEM_END;
+    let cls = 'cal-day';
+    if(ev) cls += ' ' + ev.type;
+    else if(isSun) cls += ' sunday';
+    if(isToday) cls += ' today';
+    if(outOfSem) cls += ' sunday';
+    html += `<div class="${cls}" onclick="${outOfSem ? '' : `openDay('${ds}')`}">${d}${ev ? `<span class="dot">${ev.type==='holiday'?'H':'E'}</span>` : ''}</div>`;
+  }
+  grid.innerHTML = html;
+  renderEditPanel();
+}
+
+window.openDay = function(ds){ selectedDate = ds; renderEditPanel(); };
+
+function renderEditPanel(){
+  const panel = document.getElementById('editPanel');
+  if(!selectedDate){ panel.classList.remove('open'); return; }
+  panel.classList.add('open');
+  const d = new Date(selectedDate+'T00:00:00');
+  document.getElementById('epDate').textContent = d.toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const ev = eventFor(selectedDate);
+  document.getElementById('epTitle').value = ev ? ev.title : '';
+  document.getElementById('epHoliday').classList.toggle('active', !!ev && ev.type==='holiday');
+  document.getElementById('epExam').classList.toggle('active', !!ev && ev.type==='exam');
+  panel.dataset.pendingType = ev ? ev.type : '';
+  const subjectSelect = document.getElementById('epSubject');
+  const previousSubject = subjectSelect.value;
+  subjectSelect.innerHTML = subjects.length
+    ? subjects.map(subj=>`<option value="${subj.id}">${escapeHtml(subj.name)}</option>`).join('')
+    : '<option value="">Add a subject first</option>';
+  if(subjects.some(subj=>subj.id===previousSubject)) subjectSelect.value = previousSubject;
+  subjectSelect.disabled = subjects.length === 0;
+  document.getElementById('epPresent').disabled = subjects.length === 0;
+  document.getElementById('epAbsent').disabled = subjects.length === 0;
+}
+
+document.getElementById('epHoliday').addEventListener('click', ()=>{ document.getElementById('editPanel').dataset.pendingType='holiday'; document.getElementById('epHoliday').classList.add('active'); document.getElementById('epExam').classList.remove('active'); if(!document.getElementById('epTitle').value) document.getElementById('epTitle').value='Holiday'; });
+document.getElementById('epExam').addEventListener('click', ()=>{ document.getElementById('editPanel').dataset.pendingType='exam'; document.getElementById('epExam').classList.add('active'); document.getElementById('epHoliday').classList.remove('active'); if(!document.getElementById('epTitle').value) document.getElementById('epTitle').value='Exam'; });
+document.getElementById('epClear').addEventListener('click', async ()=>{
+  events = events.filter(e=>e.date!==selectedDate);
+  await saveEvents();
+  selectedDate = null;
+  render();
+});
+document.getElementById('epCancel').addEventListener('click', ()=>{ selectedDate = null; renderEditPanel(); });
+async function markDate(subjId, status, date){
+  const subj = subjects.find(s=>s.id===subjId);
+  if(!subj || !date) return;
+  const existing = subj.records.find(record=>record.date===date);
+  if(existing) existing.status = status;
+  else subj.records.push({ date, status });
+  subj.records.sort((a,b)=>a.date.localeCompare(b.date));
+  await saveSubjects();
+  render();
+  selectedDate = date;
+  renderEditPanel();
+}
+document.getElementById('epPresent').addEventListener('click', ()=>markDate(document.getElementById('epSubject').value, 'present', selectedDate));
+document.getElementById('epAbsent').addEventListener('click', ()=>markDate(document.getElementById('epSubject').value, 'absent', selectedDate));
+document.getElementById('epSave').addEventListener('click', async ()=>{
+  const type = document.getElementById('editPanel').dataset.pendingType;
+  const title = document.getElementById('epTitle').value.trim();
+  if(!type || !title){ return; }
+  events = events.filter(e=>e.date!==selectedDate);
+  events.push({ id: uid(), date: selectedDate, type, title });
+  await saveEvents();
+  selectedDate = null;
+  render();
+});
+
+function render(){ renderHero(); renderSubjects(); renderCalendar(); }
+function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+function formatShortDate(dateStr){
+  if(!dateStr) return 'date';
+  const d = new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('en-IN',{day:'numeric', month:'short'});
+}
+
+async function addSubject(){
+  const input = document.getElementById('subjectInput');
+  const name = input.value.trim();
+  if(!name) return;
+  subjects.push({ id: uid(), name, days:[1,2,3,4,5,6], records: [] });
+  input.value = '';
+  await saveSubjects();
+  render();
+}
+window.mark = async function(subjId, status){
+  await markDate(subjId, status, quickDate);
+};
+window.undoLast = async function(subjId){
+  const subj = subjects.find(s=>s.id===subjId);
+  if(!subj || !subj.records.length) return;
+  subj.records.pop();
+  await saveSubjects();
+  render();
+};
+window.deleteSubject = async function(subjId){
+  subjects = subjects.filter(s=>s.id!==subjId);
+  await saveSubjects();
+  render();
+};
+window.toggleDay = async function(subjId, dayIdx){
+  const subj = subjects.find(s=>s.id===subjId);
+  if(!subj) return;
+  if(subj.days.includes(dayIdx)) subj.days = subj.days.filter(d=>d!==dayIdx);
+  else subj.days = [...subj.days, dayIdx].sort();
+  await saveSubjects();
+  render();
+};
+
+async function resetAll(){
+  if(!confirm('This clears all subjects, records, and calendar entries. Continue?')) return;
+  subjects = []; events = [];
+  await saveSubjects();
+  await saveEvents();
+  render();
+}
+
+document.getElementById('addSubjectBtn').addEventListener('click', addSubject);
+document.getElementById('subjectInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addSubject(); });
+document.getElementById('quickDate').addEventListener('change', e=>{
+  quickDate = e.target.value;
+  renderSubjects();
+});
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+loadData();
+</script>
+</body>
+</html>
