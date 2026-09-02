@@ -73,6 +73,7 @@
   .track{ height:8px; border-radius:6px; background: rgba(22,35,63,0.08); position:relative; margin-bottom:8px; overflow:visible;}
   .track-fill{ height:100%; border-radius:6px; background: var(--bar-color, var(--sage)); transition: width .3s ease;}
   .track-threshold{ position:absolute; top:-3px; bottom:-3px; width:2px; background: var(--coral); left:75%; }
+  .track-label{ display:flex; justify-content:space-between; margin-top:5px; margin-bottom:8px; color:rgba(22,35,63,0.45); font:10px 'JetBrains Mono',monospace; }
   .card-meta{ display:flex; justify-content:space-between; font-size:11.5px; color: rgba(22,35,63,0.55); margin-bottom:10px; font-family:'JetBrains Mono',monospace;}
   .card-guide{ font-size:12.5px; color: rgba(22,35,63,0.75); margin-bottom:10px; line-height:1.45; min-height: 34px; }
   .card-guide b{ color: var(--ink); }
@@ -242,19 +243,19 @@ async function loadData(){
 }
 async function readStoredArray(key){
   try{
-    if(window.storage && typeof window.storage.get === 'function'){
-      const result = await window.storage.get(key, false);
-      const parsed = result && result.value ? JSON.parse(result.value) : [];
-      if(Array.isArray(parsed)) return parsed;
-    }
-  }catch(e){ /* Fall back to browser storage. */ }
-  try{
     const raw = window.localStorage.getItem('attendance-tracker-' + key);
-    if(raw){
+    if(raw !== null){
       const parsed = JSON.parse(raw);
       if(Array.isArray(parsed)) return parsed;
     }
-  }catch(e){ /* Some file origins disable localStorage. */ }
+  }catch(e){ /* Try the secondary storage backend. */ }
+  try{
+    if(window.storage && typeof window.storage.get === 'function'){
+      const result = await window.storage.get(key, false);
+      const parsed = result && result.value ? JSON.parse(result.value) : [];
+      if(result && result.value && Array.isArray(parsed)) return parsed;
+    }
+  }catch(e){ /* Fall back to browser storage. */ }
   try{
     const raw = memoryStore[key];
     return raw ? JSON.parse(raw) : [];
@@ -263,15 +264,18 @@ async function readStoredArray(key){
 async function saveStoredArray(key, value){
   const serialized = JSON.stringify(value);
   memoryStore[key] = serialized;
+  let saved = false;
+  try{
+    window.localStorage.setItem('attendance-tracker-' + key, serialized);
+    saved = true;
+  }catch(e){ /* Continue with the secondary storage backend. */ }
   try{
     if(window.storage && typeof window.storage.set === 'function'){
       await window.storage.set(key, serialized, false);
-      setStorageNote('Saved on this device');
-      return;
+      saved = true;
     }
   }catch(e){ /* In-memory storage still keeps this session working. */ }
-  try{ window.localStorage.setItem('attendance-tracker-' + key, serialized); setStorageNote('Saved on this device'); return; }catch(e){ /* Use the in-memory fallback. */ }
-  setStorageNote('Working in this browser session only');
+  setStorageNote(saved ? 'Saved on this device' : 'Working in this browser session only');
 }
 function setStorageNote(message){
   const note = document.getElementById('storageNote');
@@ -423,6 +427,7 @@ function renderSubjects(){
         <div class="track-fill" style="width:${fillWidth}%"></div>
         <div class="track-threshold"></div>
       </div>
+      <div class="track-label"><span>0%</span><span>75% target</span><span>100%</span></div>
       <div class="card-meta"><span>P ${stats.present} · A ${stats.absent}</span><span>${stats.total} counted</span></div>
       <div class="card-guide">${guide}</div>
       <div class="card-days">${dayChips}</div>
