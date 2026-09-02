@@ -81,7 +81,7 @@
   .day-chip{ font-size:10.5px; font-weight:700; padding:4px 7px; border-radius:6px; background: rgba(22,35,63,0.06); color: rgba(22,35,63,0.4); }
   .day-chip.on{ background: var(--navy); color: var(--paper); }
   .mark-row{ display:flex; gap:6px; }
-  .mark-row button{ flex:1; font-size:12px; font-weight:700; padding:8px 4px; border-radius:8px; background: rgba(22,35,63,0.06); color: var(--ink); transition: all .12s ease; }
+  .mark-row button{ flex:1; min-height:42px; font-size:12px; font-weight:700; padding:8px 4px; border-radius:8px; background: rgba(22,35,63,0.06); color: var(--ink); transition: all .12s ease; }
   .mark-row button.present-btn:hover{ background: var(--sage); color:#fff; }
   .mark-row button.absent-btn:hover{ background: var(--coral); color:#fff; }
   .undo-line{ margin-top:9px; font-size:11px; color: rgba(22,35,63,0.4); font-family:'JetBrains Mono',monospace;}
@@ -122,14 +122,28 @@
   .ep-row select{ flex:1; min-width:160px; background: var(--navy); border:1px solid rgba(244,241,232,0.15); color: var(--paper); padding: 9px 10px; border-radius:8px; font-size:13px; font-family:'Inter',sans-serif; }
   .attendance-entry{ border-top:1px solid rgba(244,241,232,0.1); margin-top:12px; padding-top:12px; }
   .attendance-entry label{ display:block; color:rgba(244,241,232,0.55); font-size:11px; margin-bottom:7px; }
-  .attendance-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-  .attendance-actions button{ flex:1; min-width:120px; }
+  .attendance-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  .attendance-actions button{ flex:1 1 140px; min-width:120px; min-height:42px; }
   .present-action:hover{ background:var(--sage); color:#fff; }
   .absent-action:hover{ background:var(--coral); color:#fff; }
-  .ep-actions{ display:flex; gap:8px; }
+  .ep-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid rgba(244,241,232,0.1); }
+  .ep-actions button{ flex:1 1 120px; min-height:42px; }
 
   footer{ text-align:center; margin-top: 40px; }
   .storage-note{ min-height: 18px; margin-top: 10px; color: rgba(244,241,232,0.45); font-size: 11px; }
+  @media (max-width:600px){
+    body{ padding:22px 14px 56px; }
+    .hero{ padding:20px 16px 18px; gap:16px; }
+    .gauge-box{ flex-basis:100%; }
+    .add-row{ flex-wrap:wrap; }
+    .add-row input{ min-width:0; }
+    .add-row .btn-gold{ min-height:42px; }
+    .quick-date{ align-items:flex-start; flex-wrap:wrap; }
+    .quick-date-note{ flex-basis:100%; }
+    .cal-card{ padding:12px; }
+    .cal-grid{ gap:4px; }
+    .edit-panel{ padding:12px; }
+  }
   @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
 </style>
 </head>
